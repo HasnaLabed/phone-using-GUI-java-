@@ -1,17 +1,835 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<projectDescription>
-	<name>MiniProjet</name>
-	<comment></comment>
-	<projects>
-	</projects>
-	<buildSpec>
-		<buildCommand>
-			<name>org.eclipse.jdt.core.javabuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
-	</buildSpec>
-	<natures>
-		<nature>org.eclipse.jdt.core.javanature</nature>
-	</natures>
-</projectDescription>
+package MiniProjet;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+//===================================================view class ==============================//
+public class PhoneView {
+	private JFrame frame;
+	private JTextField displayField;
+	private JPanel buttonPanel;
+	private JButton callButton;
+	private JButton[] buttons;
+	private JTabbedPane tabbedPane;// bare li fih contacts....
+	private JDialog callDialog;
+	private JButton theme = new JButton("mode");
+	JButton addButton = new JButton("Add");
+	JButton delateButton = new JButton("delete ");
+	JButton blockButton = new JButton("block ");
+	JButton unblockButton = new JButton("unblockButton");
+
+	private DefaultTableModel model;
+	private JTable contactsTable;
+
+	private final String[] labels = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#", "Bis", "Reset" };
+
+//constructor
+	public PhoneView() {
+		frame = new JFrame("Phone");
+		frame.setSize(300, 500);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		buildGUI(frame.getContentPane());
+		frame.setLocationRelativeTo(null);// frame twali fi nos screen
+		frame.setVisible(true);// for show the fram in screen
+
+	}
+
+	// build the gui
+	private void buildGUI(Container pane) {
+		// mode button
+		theme.setAlignmentX(Component.CENTER_ALIGNMENT);
+		pane.add(theme);
+
+		// barre
+		pane.setLayout(new BorderLayout());
+
+		tabbedPane = new JTabbedPane();
+		tabbedPane.addTab("Phone", createPhonePanel());
+		tabbedPane.addTab("Contacts", createContactsPanel());
+		tabbedPane.addTab("History", createCallHistoryPanel());
+		tabbedPane.addTab("Blocked", createBlockedPanel());
+
+		pane.add(tabbedPane, BorderLayout.CENTER);
+
+		pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+
+		displayField = new JTextField("", 20);
+		displayField.setEditable(false);
+		displayField.setFont(new Font("Arial", Font.BOLD, 24));
+		displayField.setHorizontalAlignment(JTextField.CENTER);
+
+		pane.add(displayField);
+
+		buttonPanel = new JPanel(new GridLayout(5, 3, 5, 5));
+		buttons = new JButton[labels.length];
+
+		for (int i = 0; i < labels.length; i++) {
+			buttons[i] = new JButton(labels[i]);
+			buttons[i].setFont(new Font("Arial", Font.BOLD, 18));
+			buttonPanel.add(buttons[i]);
+		}
+
+		pane.add(buttonPanel);
+
+		// call button
+		callButton = new JButton("Call");
+		callButton.setFont(new Font("Arial", Font.BOLD, 20));
+		callButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		callButton.setVisible(false);
+
+		pane.add(Box.createVerticalStrut(10));
+		pane.add(callButton);
+		
+	}
+
+	private JPanel createPhonePanel() {
+		return new JPanel(); // Placeholder for now
+	}
+
+//contact panel 
+	private JPanel createContactsPanel() {
+		JPanel panel = new JPanel(new BorderLayout());
+
+		String[] columns = { "Name", "Number", "Email" };
+		model = new DefaultTableModel(columns, 0);
+		for (String[] contact : PhoneModel.getContacts()) {
+			if (contact.length >= 2) {
+				model.addRow(new Object[] { contact[0], contact[1], contact.length > 2 ? contact[2] : "" });
+			}
+		}
+//-----
+		JTable table = new JTable(model);
+		JScrollPane scrollPane = new JScrollPane(table);// if we have longer data will show it all 
+		panel.add(scrollPane, BorderLayout.CENTER);
+
+		// add buttons to the frame (contact pane)
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(addButton);
+		buttonPanel.add(delateButton);
+		buttonPanel.add(blockButton);
+
+		panel.add(buttonPanel, BorderLayout.SOUTH);
+
+		return panel;
+	}
+	//=============================================================//
+
+//history of the calls
+	private JPanel createCallHistoryPanel() {
+		JPanel panel = new JPanel(new BorderLayout());
+
+		String[] columns = { "Name", "Number" };
+		model = new DefaultTableModel(columns, 0);
+
+		for (String[] call : PhoneModel.getCalls()) {
+			model.addRow(call);
+		}
+
+		JTable table = new JTable(model);
+		JScrollPane scrollPane = new JScrollPane(table);
+		panel.add(scrollPane, BorderLayout.CENTER);
+
+		return panel;
+	}
+
+//============================================//
+	
+	// bloked list
+	public JPanel createBlockedPanel() {
+		JPanel panel = new JPanel(new BorderLayout());
+
+		// إنشاء جدول Blocked
+		String[] columns = { "Name", "Number" };
+		DefaultTableModel blockedModel = new DefaultTableModel(columns, 0) {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false; 
+			}
+		};
+		
+		JTable table = new JTable(model);
+		JScrollPane scrollPane = new JScrollPane(table);
+		panel.add(scrollPane, BorderLayout.CENTER);
+
+
+		return panel;
+	}
+	//===============================================//
+//add new contact
+
+	public String[] promptNewContact() {
+		JTextField nameField = new JTextField();
+		JTextField numberField = new JTextField();
+		JTextField emailField = new JTextField();
+
+		Object[] message = { "Name:", nameField, "Number:", numberField, "Email (optional):", emailField };
+
+		int option = JOptionPane.showConfirmDialog(frame, message, "Add Contact", JOptionPane.OK_CANCEL_OPTION);
+
+		if (option == JOptionPane.OK_OPTION) {
+			return new String[] { nameField.getText(), numberField.getText(), emailField.getText() };
+		}
+
+		return null;
+	}
+
+//===========================================//	
+
+//geters
+	public JFrame getFrame() {
+		return frame;
+	}
+
+	public JTextField getDisplayField() {
+		return displayField;
+	}
+
+	public JButton getCallButton() {
+		return callButton;
+	}
+
+	public JButton[] getButtons() {
+		return buttons;
+	}
+
+	public String[] getLabels() {
+		return labels;
+	}
+
+	public void refreshContactsTab() {
+		tabbedPane.setComponentAt(1, createContactsPanel());
+	}
+
+	JButton getTheme() {
+		return theme;
+	}
+
+	public DefaultTableModel getContactsTableModel() {
+		return model;
+	}
+
+	public JButton getAddButton() {
+		return addButton;
+	}
+
+	public JButton getDeleteButton() {
+		return delateButton;
+	}
+
+	public JTable getContactsTable() {
+		return contactsTable;
+	}
+
+
+
+}
+
+//==================controller class===========================//
+package MiniProjet;
+
+import javax.sound.sampled.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.*;
+import java.io.File;
+import java.util.List;
+//============================ CONTROLLER ============================
+
+public class PhoneController {
+    private PhoneModel model;
+    private PhoneView view;
+	private boolean darkMode = false;
+
+//=========================constructer==========================//
+    public PhoneController(PhoneModel model, PhoneView view) {
+        this.model = model;
+        this.view = view;
+        addListeners(); 
+        
+        }            
+   
+     
+  //=====================================================//
+    //add lister method 
+    private void addListeners() {
+        JButton[] buttons = view.getButtons();
+        String[] labels = view.getLabels();
+
+        for (int i = 0; i < buttons.length; i++) {
+            String label = labels[i];
+            buttons[i].addActionListener(e -> handleButtonPress(label));
+        }
+        
+        //call Button
+        view.getCallButton().addActionListener(e -> showCallingDialog());
+        //theme button
+        view.getTheme().addActionListener(e -> Theme(view.getFrame()));
+        //add contact button
+        view.getAddButton().addActionListener(e -> showAddContactDialog());
+        //delate button 
+        view.getDeleteButton().addActionListener(e -> showContactsForDeletion());
+    }
+    
+    //==========================mode=======================================//
+
+    //mode 
+	private  void Theme(JFrame frame) {
+		darkMode = !darkMode;// ida kan mode 3adi diro dark w l3akes 
+		applyTheme(frame.getContentPane());//applique le neveux color ll tout les component li kaynin f interface
+		SwingUtilities.updateComponentTreeUI(frame); // update the interface
+	}
+
+    private void applyTheme(Container container) {
+		Color bgColor = darkMode ? Color.DARK_GRAY : Color.WHITE;//bgColor howa lawn l5alfiya 
+		Color fgColor = darkMode ? Color.WHITE : Color.BLACK;//fgcolor howa color nta3 l5a6
+
+		for (Component c : container.getComponents()) {
+			if (c instanceof JPanel || c instanceof JButton || c instanceof JTextField || c instanceof JLabel
+					|| c instanceof JTable) {
+				c.setBackground(bgColor);
+				c.setForeground(fgColor);
+			}
+			if (c instanceof Container) {
+				applyTheme((Container) c);
+			}
+		}
+	}
+    
+    //=================================================================//
+    //dialog box of call 
+    private void showAddContactDialog() {
+        String[] data = view.promptNewContact();
+        if (data != null) {
+            String name = data[0];
+            String number = data[1];
+            String email = data[2];
+            
+            PhoneModel.addContact(name, number, email);
+            view.refreshContactsTab();
+        }
+    }
+   
+//===============================================//
+    //box deletion 
+    private void showContactsForDeletion() {
+        List<String[]> contacts = PhoneModel.getContacts();
+        
+        // uconfirmi esq kayn contact ou no 
+        if (contacts == null || contacts.isEmpty()) {
+            JOptionPane.showMessageDialog(view.getFrame(), 
+                "No contacts available to delete", 
+                "Info", 
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // tableau de nom 
+        String[] contactNames = new String[contacts.size()];
+        for (int i = 0; i < contacts.size(); i++) {
+            String[] contact = contacts.get(i);
+            // yconfirmi esq les donne il est just 
+            if (contact != null && contact.length > 0) {
+                contactNames[i] = contact[0]; // name in the first element
+            } else {
+                contactNames[i] = "Unknown Contact";
+            }
+        }
+
+        // show the option of delete
+  String selectedContact = (String) JOptionPane.showInputDialog( view.getFrame(), 
+		  "Select a contact to delete", 
+		  "Delete Contact", 
+		  JOptionPane.PLAIN_MESSAGE, 
+           null, 
+           contactNames, 
+            contactNames.length > 0 ? contactNames[0] : null);
+        if (selectedContact != null && !selectedContact.isEmpty()) {
+            deleteContact(selectedContact);
+        }
+    }
+    
+    
+    
+    private void deleteContact(String selectedContact) {
+        if (selectedContact == null || selectedContact.isEmpty()) {
+            JOptionPane.showMessageDialog(view.getFrame(),"No contact selected","Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String[] contactToDelete = findContact(selectedContact);
+           if (contactToDelete == null || contactToDelete.length < 2) {
+            JOptionPane.showMessageDialog(view.getFrame(), 
+                "Contact not found", 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // confirmer
+        int confirm = JOptionPane.showConfirmDialog(
+            view.getFrame(),
+            "Are you sure you want to delete " + contactToDelete[0] + "?",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            PhoneModel.deleteContact(contactToDelete[1]); //مdelate using number
+            view.refreshContactsTab();
+            JOptionPane.showMessageDialog(view.getFrame(), 
+                "Contact deleted successfully", 
+                "Success", 
+                JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    //============================================//
+    
+    private String[] findContact(String searchTerm) {
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            return null;
+        }
+
+        List<String[]> contacts = PhoneModel.getContacts();
+        if (contacts == null || contacts.isEmpty()) {
+            return null;
+        }
+
+        for (String[] contact : contacts) {
+            if (contact != null && contact.length >= 2) {  // confirmer esq le  nom et le numero il exist
+                if (searchTerm.equalsIgnoreCase(contact[0]) || searchTerm.equals(contact[1])) {
+                    return contact;
+                }
+            }
+        }
+        return null;
+    }
+
+   
+    //====================================//
+    private void handleButtonPress(String label) {
+        switch (label) {
+            case "Bis":
+                model.backspace();
+                break;
+            case "Reset":
+                model.reset();
+                break;
+            default:
+                model.addDigit(label);
+        }
+        view.getDisplayField().setText(model.getCurrentNumber());
+        view.getCallButton().setVisible(!model.getCurrentNumber().isEmpty());
+    }
+//============================================//
+    private void showCallingDialog() {
+        String number = model.getCurrentNumber();
+        playSound();
+        String name = MiniProjet.PhoneModel.findContactName(number);
+        JOptionPane.showMessageDialog(view.getFrame(), "Calling\nName: " + name + "\nNumber: " + number);
+    }
+
+    
+    private void playSound() {
+        try {
+            File soundFile = new File("resources/ringtone.wav");
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    //==============================================//
+    
+}
+//============================model class==============================//
+package MiniProjet;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.sound.sampled.*;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+// ============================ MODEL ============================
+
+public class PhoneModel {
+    private static final String CALLS_FILE = "calls.txt";
+    private static final String CONTACTS_FILE = "contacts.txt";
+    private static final String BLOCKED_FILE = "blocked.txt";
+    private static final String DELATED_CONTACTS = "delated.txt";
+    private StringBuilder currentNumber = new StringBuilder();
+    
+    
+
+    public void addDigit(String digit) {
+        currentNumber.append(digit);
+    }
+
+    public void backspace() {
+        if (currentNumber.length() > 0) {
+            currentNumber.deleteCharAt(currentNumber.length() - 1);
+        }
+    }
+
+    public void reset() {
+        currentNumber.setLength(0);
+    }
+
+
+    //create File If Not found
+    private static void createFileIfNotfound(String filename) {
+        try {
+            File file = new File(filename);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+   // We active the sttic block in java when we went to run code just one time 
+    static {
+    	//create the file if not found 
+    	createFileIfNotfound(CALLS_FILE);
+    	createFileIfNotfound(CONTACTS_FILE);
+    	createFileIfNotfound(BLOCKED_FILE);
+    	createFileIfNotfound(DELATED_CONTACTS);
+    }
+
+ 
+      //_______________________________________________//
+    // call manager
+    //type howa type t3 l'appel sadira wla warida 
+    // saved the calls in the file 
+ public static void addCall(String number, String type) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CALLS_FILE, true))) {
+            String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+            writer.write(number + "," + type + "," + time);
+
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+ }   
+
+ 
+ // return list for show it in the interface 
+    public static List<String[]> getCalls() {
+        List<String[]> calls = new ArrayList<>();
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(CALLS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length >= 3) { //name , number,email 
+                    calls.add(parts);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            
+        }
+        
+        return calls;
+    }
+    
+    
+    //_________________________________________°°°°_____//
+    //____________________°°°°__________________________//
+
+    
+    // contact manager
+    public static void addContact(String name, String number, String email) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CONTACTS_FILE, true))) {
+            writer.write(name + "," + number + "," + (email != null ? email : ""));
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<String[]> getContacts() {
+        return readFile(CONTACTS_FILE);
+         
+    }
+
+    
+    //delate number 
+    //from file
+    
+
+    private static String findContactByNumber(String number) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(CONTACTS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length > 1 && parts[1].equals(number)) {
+                    return line;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    
+    //________________________________________________//    
+ 
+   
+//______________________________//
+    //delate contact frome file 
+  private static void deleteFromFile(String filename, String searchTerm, int columnIndex) {
+    	File inputFile = new File(filename);
+    	File tempFile = new File(filename + ".tmp");
+
+    	
+    	        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+    	             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+    	            
+    	            String line;
+    	            while ((line = reader.readLine()) != null) {
+    	                String[] parts = line.split(",");
+    	                if (parts.length > columnIndex && !parts[columnIndex].equals(searchTerm)) {
+    	                    writer.write(line);
+    	                    writer.newLine();
+    	                }
+    	            }
+    	        } catch (IOException e) {
+    	            e.printStackTrace();
+    	            return;
+    	        }
+
+    	        if (!inputFile.delete() || !tempFile.renameTo(inputFile)) {
+    	            System.err.println("Error updating file: " + filename);
+    	        } }
+    	
+
+    //__________________________________________________//
+    
+   
+  public static boolean deleteContact(String number) {
+	    if (number == null || number.isEmpty()) {
+	        return false;
+	    }
+
+	    File inputFile = new File(CONTACTS_FILE);
+	    File tempFile = new File(CONTACTS_FILE + ".tmp");
+	    boolean deleted = false;
+
+	    try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+	         BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+	        
+	        String line;
+	        while ((line = reader.readLine()) != null) {
+	            String[] parts = line.split(",");
+	            if (parts.length >= 2 && parts[1].equals(number)) {
+	                deleted = true;
+	                continue; // تخطي هذا السطر (عدم كتابته في الملف الجديد)
+	            }
+	            writer.write(line);
+	            writer.newLine();
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+
+	    if (deleted) {
+	        try {
+	            Files.move(tempFile.toPath(), inputFile.toPath(), 
+	                StandardCopyOption.REPLACE_EXISTING);
+	            return true;
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            return false;
+	        }
+	    }
+	    return false;
+	}
+    //__________________________________________________________//
+    
+   public static String findContactName(String number) {
+        List<String[]> contacts = getContacts();
+        for (String[] contact : contacts) {
+            if (contact[1].equals(number)) {
+                return contact[0];
+            }
+            else {
+    	        return "Unknown";
+
+            }
+        }
+		return null;
+    }
+    //_______________//
+    private static List<String[]> readFile(String filename) {
+        List<String[]> data = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    data.add(line.split(","));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+    
+    
+    public String getCurrentNumber() {
+        return currentNumber.toString();
+    }
+  
+    }
+
+
+
+//==================================splash screen class=======================//
+package MiniProjet;
+
+import javax.swing.*;
+
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.image.*;
+import java.io.File;
+import java.net.URL;
+
+public class SplashScreen {
+private JFrame frame;
+
+public SplashScreen() {
+    frame = new JFrame();
+    frame.setUndecorated(false); //bare
+    frame.setSize(300, 500);
+    frame.setLocationRelativeTo(null);//y5ali l'ecron fi nos 
+
+    JLabel background = loadBackground();
+    JButton phoneIcon = createPhoneIcon();
+    
+    //tansi9 background and add icon using GridBagLayout
+    background.setLayout(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();//hamch sofli
+    gbc.gridy = 1;
+    gbc.insets = new Insets(0, 0, 50, 0);
+    
+    background.add(phoneIcon, gbc);//add icon fo9 lbackground
+    frame.add(background);//add packgound to frame
+    frame.setVisible(true);//show the window
+}
+
+//load background 
+private JLabel loadBackground() {
+    try {
+    	//uplaod image
+        URL bgUrl = getClass().getResource("/background.png");
+        if (bgUrl != null) {
+            ImageIcon bgIcon = new ImageIcon(bgUrl);
+            return new JLabel(new ImageIcon(bgIcon.getImage().getScaledInstance(300, 500, Image.SCALE_SMOOTH)));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    
+   
+    JLabel fallback = new JLabel();
+    fallback.setPreferredSize(new Dimension(300, 500));//size of the image 
+    fallback.setBackground(new Color(135, 206, 235));//color of the backround if the omage i out it dont show
+    fallback.setOpaque(true);//make the component not transparant
+    return fallback;
+}
+
+
+private JButton createPhoneIcon() {
+    ImageIcon icon = loadPhoneIcon();
+  
+    JButton button = new JButton(icon);
+    styleButton(button, icon);
+    button.addActionListener(e -> openPhoneApp());
+    return button;
+}
+
+private ImageIcon loadPhoneIcon() {
+    try {
+        // first trying 
+        URL iconUrl = getClass().getResource("/phone_icon.png");
+        if (iconUrl != null) {
+            return scaleIcon(new ImageIcon(iconUrl), 80, 80);
+        }
+        
+        // 2nd tryiing upload from the files 
+        String[] possiblePaths = {
+            "src/resources/phone_icon.png",
+            "resources/phone_icon.png"
+        };
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+private ImageIcon scaleIcon(ImageIcon icon, int width, int height) {
+    return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+}
+
+private void styleButton(JButton button, ImageIcon icon) {
+    button.setBorderPainted(false);//hide the frame of the button
+    button.setContentAreaFilled(false);//make the background of the button transparant
+    button.setFocusPainted(false);
+    button.setOpaque(false);//make the button dark
+    button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));//when put the cursor in the icon change it 
+    
+    ImageIcon rolloverIcon = new ImageIcon(
+        icon.getImage().getScaledInstance(85, 85, Image.SCALE_SMOOTH));
+    button.setRolloverIcon(rolloverIcon);
+}
+
+private void openPhoneApp() {
+    frame.dispose();//close the splash screen
+    SwingUtilities.invokeLater(() -> {
+        PhoneModel model = new PhoneModel();
+        PhoneView view = new PhoneView();
+        new PhoneController(model, view);
+    });
+}
+
+
+}
+
+//========================main class================================//
+package MiniProjet;
+
+import javax.swing.*;
+
+public class Main {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+         //show the splash screen 
+           new SplashScreen();
+           
+        });
+    }
+}
